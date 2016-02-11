@@ -1,4 +1,4 @@
-# OnsenUI-router
+# Study OnsenUI and UI Router
 
 This is an example application of [Onsen UI](http://onsen.io) using [ui-router](http://angular-ui.github.io/ui-router/).
 
