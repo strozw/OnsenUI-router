@@ -4,81 +4,115 @@ var app = angular.module('myApp', ['onsen', 'ui.router']);
 app.config(function($stateProvider, $urlRouterProvider) {
 
 	// By default show Tab 1 - Navigator MasterDetail example
-	$urlRouterProvider.otherwise('/master');
+	$urlRouterProvider.otherwise('/top');
+
+	var changeTabbarPage = function(scope, naviName, page) {
+		var navi = scope[naviName];
+		var currentPage = navi.getCurrentPage();
+
+		if (
+			!currentPage ||
+			(currentPage.page !== page)
+		) {
+			navi.resetToPage(page);
+		}
+	}
+
+	var changeTab = function(scope, tabbarName, page, index) {
+		var change = function(tabbar) {
+			if (
+					(
+						(scope.fromState.tabbarName !== scope.toState.tabbarName) &&
+						(tabbar.getActiveTabIndex() !== index)
+					) ||
+					(
+						(scope.fromState.tabbarName === scope.toState.tabbarName) &&
+						scope.fromState.tabIndex != index
+					)
+			) {
+				tabbar.setActiveTab(index);
+				tabbar.loadPage(page, {_removeElement:true});
+			}
+		};
+
+		if (scope[tabbarName]) {
+			change(scope[tabbarName]);
+		} else {
+			var unwatch = scope.$watch(tabbarName, function(tabbar) {
+				if (tabbar) {
+					change(tabbar);
+					unwatch();
+				}
+			});
+		}
+	};
 
 	$stateProvider
-
-		// Tab 1 - MasterDetail example - Navigator init
-		.state('navigator', {
+		.state('base', {
 			abstract: true,
-			// url: '/navigator', // Optional url prefix
-			resolve: {
-				loaded: function($rootScope) {
-					$rootScope.myTabbar.setActiveTab(0);
-					return $rootScope.myTabbar.loadPage('html/tab1.html');
-				}
+			onEnter: function($rootScope, $state) {
+				changeTabbarPage($rootScope, 'myNavigator', 'html/top.html');
 			}
 		})
 
 		// Tab 1 - MasterDetail example - List of items
-		.state('navigator.master', {
-			parent: 'navigator',
-			url: '/master',
+		.state('top', {
+			parent: 'base',
+			url: '/top',
+			page: 'html/master.html',
+			tabbarName: 'myTabbar',
+			tabIndex: 0,
+			onEnter: ['$rootScope', '$state', function($rootScope, $state) {
+				changeTab($rootScope, this.tabbarName, this.page, this.tabIndex);
+			}]
+		})
+		.state('tab2', {
+			parent: 'base',
+			url: '/tab2',
+			tabbarName: 'myTabbar',
+			tabIndex: 1,
 			onEnter: ['$rootScope', function($rootScope) {
-				$rootScope.myNavigator.resetToPage('html/master.html');
+				changeTab($rootScope, this.tabbarName, 'html/tab2.html', this.tabIndex);
 			}]
 		})
 
-		// Tab 1 - MasterDetail example - Item details
-		.state('navigator.master.detail', {
-			parent: 'navigator.master',
-			url: '/detail/:index',
-			onEnter: ['$rootScope','$stateParams', function($rootScope,$stateParams) {
-				$rootScope.myNavigator.pushPage('html/detail.html', {'index': $stateParams.index});
-			}],
-			onExit: function($rootScope) {
-				$rootScope.myNavigator.popPage();
-			}
-		})
-
-		// Tab 2 - SlidingMenu example - SlidingMenu init
-		.state('sliding', {
-			abstract: true,
-			// url: '/sliding', // Optional url prefix
-			resolve: {
-				loaded: function($rootScope) {
-					$rootScope.myTabbar.setActiveTab(1);
-					return $rootScope.myTabbar.loadPage('html/tab2.html');
-				}
-			}
-		})
-
-		// Tab 2 - SlidingMenu example - Landing page
-		.state('sliding.main', {
-			parent: 'sliding',
-			url: '/main',
-			onEnter: ['$rootScope', function($rootScope) {
-				$rootScope.myMenu.setMainPage('html/main.html', {closeMenu: true});
-			}]
-		})
-
-		// Tab 2 - SlidingMenu example - Example page 1
-		.state('sliding.page1', {
-			parent: 'sliding',
+		.state('page1', {
 			url: '/page1',
 			onEnter: ['$rootScope', function($rootScope) {
-				$rootScope.myMenu.setMainPage('html/page1.html', {closeMenu: true});
+				$rootScope.myNavigator.pushPage('html/page1.html');
+			}],
+			onExit: ['$rootScope', function($rootScope) {
+				$rootScope.myNavigator.popPage();
 			}]
 		})
-
-		// Tab 2 - SlidingMenu example - Example page 2
-		.state('sliding.page2', {
-			parent: 'sliding',
+		.state('page2', {
 			url: '/page2',
 			onEnter: ['$rootScope', function($rootScope) {
-				$rootScope.myMenu.setMainPage('html/page2.html', {closeMenu: true});
+				$rootScope.myNavigator.pushPage('html/page2.html');
+			}],
+			onExit: ['$rootScope', function($rootScope) {
+				$rootScope.myNavigator.popPage();
 			}]
 		})
-	;
-
+		.state('detail', {
+			url: '/detail/:index',
+			onEnter: ['$rootScope','$stateParams', function($rootScope, $stateParams) {
+				$rootScope.myNavigator.pushPage('html/detail.html', {'index': $stateParams.index});
+			}],
+			onExit: ['$rootScope', function($rootScope) {
+				$rootScope.myNavigator.popPage();
+			}]
+		})
+		;
 });
+
+
+app.run(['$rootScope', function($rootScope) {
+	$rootScope.$on(
+		'$stateChangeStart',
+		function(e, to, toParams, from, fromParams) {
+			$rootScope.toState = to;
+			$rootScope.fromState = from;
+		}
+	);
+}]);

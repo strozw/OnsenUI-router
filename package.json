@@ -1,0 +1,23 @@
+{
+  "name": "onsen-ui-router",
+  "version": "1.0.0",
+  "description": "This is an example application of [Onsen UI](http://onsen.io) using [ui-router](http://angular-ui.github.io/ui-router/).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frankdiox/OnsenUI-router.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/frankdiox/OnsenUI-router/issues"
+  },
+  "homepage": "https://github.com/frankdiox/OnsenUI-router#readme",
+  "dependencies": {
+    "angular": "^1.5.0",
+    "angular-ui-router": "^0.2.18"
+  }
+}
